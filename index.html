@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Baby UAE - Business & Market Strategy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            bg: '#FAF9F6', // Off-white/Cream
+                            card: '#FFFFFF',
+                            text: '#2C302E', // Soft black/charcoal
+                            accent: '#D4C4B7', // Warm taupe/sand
+                            highlight: '#9EB3A6', // Soft sage green
+                            border: '#E8E5E1'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FAF9F6;
+            color: #2C302E;
+        }
+        
+        /* Required Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px; /* Constrain max width for readability */
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px; /* Base height */
+            max-height: 450px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Custom Scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FAF9F6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D4C4B7;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9EB3A6;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-link.active {
+            border-bottom-color: #9EB3A6;
+            color: #2C302E;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col font-sans">
+
+    <!-- Chosen Palette: Warm Neutrals & Sage (Cream #FAF9F6, Charcoal #2C302E, Taupe #D4C4B7, Sage #9EB3A6) -->
+    <!-- Application Structure Plan: A single-page dashboard with a sticky top navigation tab system. This structure is chosen to allow investors or founders to navigate between distinct logical segments (Executive Summary, Market Analysis, Competitor Landscape, Strategy) without losing context. It presents a linear story if read tab-by-tab, but allows non-linear exploration. The layout uses wide, centered content areas to maintain readability and focus on data. -->
+    <!-- Visualization & Content Choices: 
+        1. Market Size -> Goal: Show growth -> Viz: Bar Chart (Chart.js) -> Justification: Clear trend visualization over time.
+        2. Competitor Landscape -> Goal: Show market positioning -> Viz: Scatter Plot (Chart.js) -> Justification: Plots brands on Price vs. Quality axes to reveal gaps (our niche).
+        3. Sales Channels -> Goal: Show revenue mix -> Viz: Doughnut Chart (Chart.js) -> Justification: Shows part-to-whole relationship of multi-channel strategy.
+        4. SWOT/Strategy -> Goal: Organize strategic points -> Viz: HTML Grid Cards -> Justification: Clean text presentation without complex graphics.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Header / Navigation -->
+    <header class="sticky top-0 z-50 bg-brand-bg/90 backdrop-blur-md border-b border-brand-border shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center">
+                    <span class="text-3xl mr-2">🍼</span>
+                    <div>
+                        <h1 class="font-serif text-2xl font-bold text-brand-text leading-tight">Aura Baby</h1>
+                        <p class="text-xs text-brand-highlight font-semibold tracking-widest uppercase">UAE Strategy Deck</p>
+                    </div>
+                </div>
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex space-x-8">
+                    <button onclick="switchTab('exec-summary')" id="nav-exec-summary" class="nav-link active text-gray-500 hover:text-brand-text px-1 py-5 border-b-2 border-transparent transition-colors duration-200">Executive Summary</button>
+                    <button onclick="switchTab('market-analysis')" id="nav-market-analysis" class="nav-link text-gray-500 hover:text-brand-text px-1 py-5 border-b-2 border-transparent transition-colors duration-200">Market & Audience</button>
+                    <button onclick="switchTab('competitors')" id="nav-competitors" class="nav-link text-gray-500 hover:text-brand-text px-1 py-5 border-b-2 border-transparent transition-colors duration-200">Competitor Landscape</button>
+                    <button onclick="switchTab('strategy')" id="nav-strategy" class="nav-link text-gray-500 hover:text-brand-text px-1 py-5 border-b-2 border-transparent transition-colors duration-200">Business Strategy</button>
+                </nav>
+                <!-- Mobile Menu Button (Simplified for SPA) -->
+                <div class="md:hidden flex items-center">
+                    <select id="mobile-nav" onchange="switchTab(this.value)" class="bg-brand-card border border-brand-border text-brand-text rounded-md py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-highlight">
+                        <option value="exec-summary">Executive Summary</option>
+                        <option value="market-analysis">Market & Audience</option>
+                        <option value="competitors">Competitor Landscape</option>
+                        <option value="strategy">Business Strategy</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        <!-- TAB 1: Executive Summary -->
+        <section id="exec-summary" class="tab-content active space-y-12">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h2 class="font-serif text-4xl md:text-5xl font-bold text-brand-text mb-6">Redefining Early Years Apparel in the UAE</h2>
+                <p class="text-lg text-gray-600 leading-relaxed">
+                    Aura Baby is a proposed premium baby and toddler (0-3 years) clothing brand conceptualized for the UAE market. We focus on the intersection of <span class="font-semibold text-brand-highlight">health, ultimate comfort, and modern minimalist style</span>, aligning deeply with the conscious "mother-baby" bond.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Concept Pillar Cards -->
+                <div class="bg-brand-card rounded-2xl p-8 border border-brand-border shadow-sm hover:shadow-md transition-shadow">
+                    <div class="text-4xl mb-4">🌿</div>
+                    <h3 class="font-serif text-xl font-bold mb-3">Health & Skin-First</h3>
+                    <p class="text-sm text-gray-600">Utilizing only GOTS-certified organic cotton and bamboo blends. Hypoallergenic dyes and seamless designs to prevent irritation in the hot UAE climate.</p>
+                </div>
+                <div class="bg-brand-card rounded-2xl p-8 border border-brand-border shadow-sm hover:shadow-md transition-shadow">
+                    <div class="text-4xl mb-4">☁️</div>
+                    <h3 class="font-serif text-xl font-bold mb-3">Uncompromising Comfort</h3>
+                    <p class="text-sm text-gray-600">Silhouettes designed for movement and rapid growth. Features like two-way zippers, fold-over cuffs, and tagless interiors for uninterrupted sleep and play.</p>
+                </div>
+                <div class="bg-brand-card rounded-2xl p-8 border border-brand-border shadow-sm hover:shadow-md transition-shadow">
+                    <div class="text-4xl mb-4">✨</div>
+                    <h3 class="font-serif text-xl font-bold mb-3">Elevated Style</h3>
+                    <p class="text-sm text-gray-600">Moving away from loud, character-driven prints. Focusing on a calm, sophisticated palette of earthy neutrals and subtle textures that appeal to the modern UAE mother.</p>
+                </div>
+            </div>
+
+            <div class="bg-[#F4F1ED] rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between mt-12">
+                <div class="md:w-2/3 pr-0 md:pr-8 mb-6 md:mb-0">
+                    <h3 class="font-serif text-2xl font-bold mb-4">The Opportunity</h3>
+                    <p class="text-gray-700 leading-relaxed mb-4">
+                        The UAE boasts a high disposable income demographic with a strong inclination towards premium, lifestyle-driven products. While mass-market options exist, there is a distinct gap for a homegrown brand that offers European-boutique quality coupled with an understanding of local climate needs and e-commerce convenience.
+                    </p>
+                </div>
+                <div class="md:w-1/3 flex justify-center">
+                    <div class="w-48 h-48 rounded-full border-4 border-brand-accent flex items-center justify-center bg-brand-card shadow-lg">
+                        <div class="text-center">
+                            <span class="block text-3xl font-bold text-brand-highlight">Ages</span>
+                            <span class="block text-5xl font-serif text-brand-text mt-1">0-3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: Market Analysis -->
+        <section id="market-analysis" class="tab-content space-y-12">
+            <div class="max-w-3xl mb-8">
+                <h2 class="font-serif text-3xl font-bold mb-4">UAE Market Dynamics</h2>
+                <p class="text-gray-600">Understanding the demographic advantages and the projected growth of the premium baby care segment in the region.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Chart Container -->
+                <div class="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-sm">
+                    <h3 class="font-serif text-xl font-bold mb-2">Projected Market Growth</h3>
+                    <p class="text-xs text-gray-500 mb-6">UAE Premium Baby Apparel Market Value (Est. Millions AED)</p>
+                    <div class="chart-container">
+                        <canvas id="marketGrowthChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Demographics & Trends -->
+                <div class="space-y-6">
+                    <div class="bg-brand-accent/20 p-6 rounded-2xl border border-brand-accent/30">
+                        <h4 class="font-bold text-brand-text mb-2 flex items-center"><span class="mr-2">👩‍👧</span> Target Persona: "The Conscious Mother"</h4>
+                        <ul class="text-sm text-gray-700 space-y-2 list-disc list-inside">
+                            <li><strong>Age:</strong> 25-40 years old.</li>
+                            <li><strong>Location:</strong> Dubai, Abu Dhabi, Sharjah (Urban centers).</li>
+                            <li><strong>Values:</strong> Quality over quantity, sustainability, aesthetic appeal for social media, baby's dermatological health.</li>
+                            <li><strong>Behavior:</strong> Highly active on Instagram/TikTok for brand discovery; prefers convenient online shopping (Shopify/Next-day delivery).</li>
+                        </ul>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-brand-card p-5 rounded-2xl border border-brand-border text-center">
+                            <div class="text-3xl font-bold text-brand-highlight mb-1">High</div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wider">Birth Rate & Expat Influx</div>
+                        </div>
+                        <div class="bg-brand-card p-5 rounded-2xl border border-brand-border text-center">
+                            <div class="text-3xl font-bold text-brand-highlight mb-1">85%</div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wider">E-commerce Penetration</div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-sm text-gray-600 italic border-l-4 border-brand-highlight pl-4">
+                        "Mothers in the UAE are increasingly researching fabric compositions and favoring brands that align with an organic, minimalist lifestyle, moving away from fast-fashion synthetics."
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: Competitor Landscape -->
+        <section id="competitors" class="tab-content space-y-12">
+            <div class="max-w-3xl mb-8">
+                <h2 class="font-serif text-3xl font-bold mb-4">Competitive Positioning</h2>
+                <p class="text-gray-600">Analyzing the current market players to identify the 'white space' for Aura Baby—the intersection of high quality, aesthetic appeal, and accessible premium pricing.</p>
+            </div>
+
+            <!-- Positioning Map Chart -->
+            <div class="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-sm mb-12">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="font-serif text-xl font-bold">Brand Positioning Map</h3>
+                        <p class="text-xs text-gray-500">Quality/Eco-focus vs. Price Point</p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-sm text-gray-500">
+                        <span class="inline-block w-3 h-3 rounded-full bg-gray-400"></span> Competitors
+                        <span class="inline-block w-3 h-3 rounded-full bg-brand-highlight ml-4"></span> Aura Baby
+                    </div>
+                </div>
+                <div class="chart-container h-[450px]">
+                    <canvas id="positioningChart"></canvas>
+                </div>
+                <p class="text-sm text-center text-gray-600 mt-4">
+                    The objective is to occupy the top-middle quadrant: offering boutique quality without the extreme markup of luxury designer brands.
+                </p>
+            </div>
+
+            <!-- Competitor Details Grid -->
+            <div>
+                <h3 class="font-serif text-2xl font-bold mb-6">Direct & Indirect Competitors</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Card 1 -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 hover:border-brand-highlight transition-colors cursor-pointer group" onclick="showCompetitorDetail('mass')">
+                        <div class="flex justify-between items-start mb-4">
+                            <h4 class="font-bold text-lg">Mass Market</h4>
+                            <span class="text-xl">🏬</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-2">e.g., Mothercare, H&M Kids, Zara</p>
+                        <div class="space-y-1 text-sm">
+                            <p><span class="text-red-500 mr-1">⊖</span> Synthetic blends common</p>
+                            <p><span class="text-red-500 mr-1">⊖</span> Fast fashion aesthetics</p>
+                            <p><span class="text-green-600 mr-1">⊕</span> Highly accessible pricing</p>
+                        </div>
+                        <div class="mt-4 text-xs font-semibold text-brand-highlight group-hover:underline">Click for strategy against &rarr;</div>
+                    </div>
+                    <!-- Card 2 -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 hover:border-brand-highlight transition-colors cursor-pointer group" onclick="showCompetitorDetail('luxury')">
+                        <div class="flex justify-between items-start mb-4">
+                            <h4 class="font-bold text-lg">Luxury Boutiques</h4>
+                            <span class="text-xl">💎</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-2">e.g., Mamas & Papas, Level Kids</p>
+                        <div class="space-y-1 text-sm">
+                            <p><span class="text-green-600 mr-1">⊕</span> Premium quality</p>
+                            <p><span class="text-green-600 mr-1">⊕</span> Strong brand heritage</p>
+                            <p><span class="text-red-500 mr-1">⊖</span> Very high price points</p>
+                        </div>
+                        <div class="mt-4 text-xs font-semibold text-brand-highlight group-hover:underline">Click for strategy against &rarr;</div>
+                    </div>
+                    <!-- Card 3 -->
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 hover:border-brand-highlight transition-colors cursor-pointer group" onclick="showCompetitorDetail('local')">
+                        <div class="flex justify-between items-start mb-4">
+                            <h4 class="font-bold text-lg">Local Insta-Brands</h4>
+                            <span class="text-xl">📱</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-2">Various UAE specific micro-brands</p>
+                        <div class="space-y-1 text-sm">
+                            <p><span class="text-green-600 mr-1">⊕</span> Trendy aesthetics</p>
+                            <p><span class="text-green-600 mr-1">⊕</span> Strong community feel</p>
+                            <p><span class="text-red-500 mr-1">⊖</span> Inconsistent supply chain</p>
+                        </div>
+                        <div class="mt-4 text-xs font-semibold text-brand-highlight group-hover:underline">Click for strategy against &rarr;</div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Detail Area -->
+                <div id="competitor-detail-box" class="hidden mt-6 p-6 bg-brand-bg border border-brand-accent rounded-xl text-sm">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: Business Strategy -->
+        <section id="strategy" class="tab-content space-y-12">
+            <div class="max-w-3xl mb-8">
+                <h2 class="font-serif text-3xl font-bold mb-4">Execution Strategy</h2>
+                <p class="text-gray-600">A multi-channel approach leveraging digital infrastructure, focusing on brand building before wide distribution.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Sales Channels -->
+                <div class="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-sm">
+                    <h3 class="font-serif text-xl font-bold mb-2">Omnichannel Revenue Mix</h3>
+                    <p class="text-xs text-gray-500 mb-6">Target distribution for Year 1-2</p>
+                    <div class="chart-container h-[300px]">
+                        <canvas id="channelsChart"></canvas>
+                    </div>
+                    <div class="mt-6 space-y-3">
+                        <div class="flex items-center text-sm"><span class="w-3 h-3 rounded-full bg-[#9EB3A6] mr-3"></span><strong>Shopify (D2C):</strong> Primary hub. Highest margin, full brand control, customer data ownership.</div>
+                        <div class="flex items-center text-sm"><span class="w-3 h-3 rounded-full bg-[#D4C4B7] mr-3"></span><strong>Social Commerce:</strong> Instagram/TikTok shop integration. Capitalizes on impulse buys driven by aesthetic content.</div>
+                        <div class="flex items-center text-sm"><span class="w-3 h-3 rounded-full bg-[#2C302E] mr-3"></span><strong>Marketplaces:</strong> Amazon UAE/Noon. Volume drivers, captures high-intent search traffic, lower margins.</div>
+                    </div>
+                </div>
+
+                <!-- Setup & Operations -->
+                <div class="space-y-6">
+                    
+                    <div class="bg-white p-6 rounded-2xl border-l-4 border-[#9EB3A6] shadow-sm">
+                        <h4 class="font-bold text-lg mb-3 flex items-center">🏢 Legal & Setup: DED License</h4>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Operating via a Dubai Department of Economy and Tourism (DED) E-commerce License allows for robust local operations.
+                        </p>
+                        <ul class="text-sm space-y-2">
+                            <li class="flex items-start"><span class="text-brand-highlight mr-2">✓</span> Allows integration with local payment gateways (Stripe UAE, PayTabs).</li>
+                            <li class="flex items-start"><span class="text-brand-highlight mr-2">✓</span> Required for seamless import of inventory via Dubai Customs.</li>
+                            <li class="flex items-start"><span class="text-brand-highlight mr-2">✓</span> Builds trust with local consumers compared to offshore setups.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-brand-border shadow-sm">
+                        <h4 class="font-bold text-lg mb-4">Go-to-Market Phases</h4>
+                        <div class="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
+                            <!-- Phase 1 -->
+                            <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                                <div class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-brand-highlight text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">1</div>
+                                <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-brand-bg p-4 rounded border border-brand-border">
+                                    <div class="font-bold text-brand-text text-sm">Launch & D2C Focus</div>
+                                    <div class="text-xs text-gray-500 mt-1">Shopify live, Micro-influencer gifting campaign, Instagram aesthetic establishment.</div>
+                                </div>
+                            </div>
+                            <!-- Phase 2 -->
+                            <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                                <div class="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white text-gray-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">2</div>
+                                <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded border border-gray-100">
+                                    <div class="font-bold text-gray-700 text-sm">Marketplace Expansion</div>
+                                    <div class="text-xs text-gray-500 mt-1">Onboard to Amazon UAE (FBA for next-day delivery) and Noon to capture search intent.</div>
+                                </div>
+                            </div>
+                            <!-- Phase 3 -->
+                            <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                                <div class="flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 bg-white text-gray-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">3</div>
+                                <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded border border-gray-100">
+                                    <div class="font-bold text-gray-700 text-sm">Pop-up & B2B</div>
+                                    <div class="text-xs text-gray-500 mt-1">Seasonal pop-ups in premium malls (e.g., Mall of Emirates) and wholesale to boutique nurseries.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-brand-text text-white py-8 mt-12 text-center text-sm">
+        <p>&copy; 2026 Aura Baby Strategy Dashboard. Internal Use Only.</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Data Storage
+        const competitorDetails = {
+            'mass': {
+                title: 'Strategy vs. Mass Market',
+                content: 'Aura Baby will not compete on price. Instead, we highlight the <strong class="text-brand-highlight">cost-per-wear value of durable, organic materials</strong> that withstand frequent washing without pilling or losing shape, unlike fast-fashion alternatives. Marketing will focus on dermatological benefits for sensitive baby skin.'
+            },
+            'luxury': {
+                title: 'Strategy vs. Luxury Boutiques',
+                content: 'We offer <strong class="text-brand-highlight">"Accessible Luxury"</strong>. By operating primarily D2C initially, we cut out retail markups, allowing us to offer similar high-grade GOTS cotton at a 30-40% lower price point than designer labels, appealing to practical yet style-conscious mothers.'
+            },
+            'local': {
+                title: 'Strategy vs. Local Insta-Brands',
+                content: 'Our differentiator is <strong class="text-brand-highlight">Reliability and Professionalism</strong>. Through our DED setup and robust Shopify/Logistics backend, we guarantee professional packaging, consistent sizing, and next-day delivery—pain points often associated with smaller social-only sellers.'
+            }
+        };
+
+        // Chart Instances tracking to prevent canvas reuse errors
+        let charts = {};
+
+        // Configuration for colors
+        const colors = {
+            sage: '#9EB3A6',
+            taupe: '#D4C4B7',
+            charcoal: '#2C302E',
+            grey: '#9CA3AF',
+            lightBg: '#FAF9F6'
+        };
+
+        // Navigation Logic
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Show active tab
+            document.getElementById(tabId).classList.add('active');
+
+            // Update Desktop Nav styles
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active', 'border-brand-highlight', 'text-brand-text', 'font-semibold');
+                link.classList.add('border-transparent', 'text-gray-500');
+            });
+            const activeLink = document.getElementById('nav-' + tabId);
+            if(activeLink) {
+                activeLink.classList.remove('border-transparent', 'text-gray-500');
+                activeLink.classList.add('active', 'border-brand-highlight', 'text-brand-text', 'font-semibold');
+            }
+
+            // Sync Mobile select
+            document.getElementById('mobile-nav').value = tabId;
+
+            // Render/Update charts if the tab contains them (delayed slightly to ensure container is visible for sizing)
+            setTimeout(() => {
+                if(tabId === 'market-analysis') renderMarketChart();
+                if(tabId === 'competitors') renderPositioningChart();
+                if(tabId === 'strategy') renderChannelsChart();
+            }, 50);
+        }
+
+        // Interactive Element Logic
+        function showCompetitorDetail(type) {
+            const box = document.getElementById('competitor-detail-box');
+            const data = competitorDetails[type];
+            
+            box.innerHTML = `
+                <h4 class="font-bold text-lg mb-2 text-brand-text">${data.title}</h4>
+                <p class="text-gray-700">${data.content}</p>
+            `;
+            box.classList.remove('hidden');
+            // Simple animation
+            box.style.opacity = 0;
+            setTimeout(() => {
+                box.style.transition = 'opacity 0.3s ease';
+                box.style.opacity = 1;
+            }, 10);
+        }
+
+        // Chart.js Render Functions
+
+        // 1. Market Growth (Bar Chart)
+        function renderMarketChart() {
+            const ctx = document.getElementById('marketGrowthChart').getContext('2d');
+            if(charts.market) charts.market.destroy(); // Prevent memory leaks/overlay
+
+            charts.market = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['2023', '2024', '2025', '2026', '2027 (Proj)', '2028 (Proj)'],
+                    datasets: [{
+                        label: 'Market Value (M AED)',
+                        data: [450, 480, 520, 580, 650, 730],
+                        backgroundColor: colors.taupe,
+                        hoverBackgroundColor: colors.sage,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Critical for Tailwind container sizing
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: colors.charcoal,
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + ' Million AED';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 300,
+                            grid: { color: '#E8E5E1', drawBorder: false }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Competitor Positioning (Scatter Chart)
+        function renderPositioningChart() {
+            const ctx = document.getElementById('positioningChart').getContext('2d');
+            if(charts.positioning) charts.positioning.destroy();
+
+            // Custom data structure to include brand names for tooltips
+            const scatterData = [
+                { x: 30, y: 30, name: 'Mass Market A', type: 'competitor' },
+                { x: 45, y: 40, name: 'Mass Market B', type: 'competitor' },
+                { x: 80, y: 60, name: 'Local Insta-Brand', type: 'competitor' },
+                { x: 95, y: 90, name: 'Luxury Boutique X', type: 'competitor' },
+                { x: 90, y: 85, name: 'Luxury Boutique Y', type: 'competitor' },
+                { x: 75, y: 88, name: 'AURA BABY', type: 'target' } // Target positioning
+            ];
+
+            charts.positioning = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Competitors',
+                            data: scatterData.filter(d => d.type === 'competitor'),
+                            backgroundColor: colors.grey,
+                            pointRadius: 8,
+                            pointHoverRadius: 10
+                        },
+                        {
+                            label: 'Aura Baby Target',
+                            data: scatterData.filter(d => d.type === 'target'),
+                            backgroundColor: colors.sage,
+                            borderColor: colors.charcoal,
+                            borderWidth: 2,
+                            pointRadius: 12,
+                            pointHoverRadius: 14,
+                            pointStyle: 'star'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            backgroundColor: colors.charcoal,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw.name;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Price Point (Low to High)' },
+                            min: 0, max: 100,
+                            grid: { color: '#E8E5E1' },
+                            ticks: { display: false } // Hide numbers, rely on axis title
+                        },
+                        y: {
+                            title: { display: true, text: 'Quality & Eco-Focus (Low to High)' },
+                            min: 0, max: 100,
+                            grid: { color: '#E8E5E1' },
+                            ticks: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 3. Sales Channels (Doughnut Chart)
+        function renderChannelsChart() {
+            const ctx = document.getElementById('channelsChart').getContext('2d');
+            if(charts.channels) charts.channels.destroy();
+
+            charts.channels = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Shopify (D2C)', 'Social Commerce', 'Marketplaces (Amazon/Noon)'],
+                    datasets: [{
+                        data: [60, 25, 15],
+                        backgroundColor: [
+                            colors.sage,
+                            colors.taupe,
+                            colors.charcoal
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            display: false // Using custom HTML legend below chart
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize default view on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Nothing specific needs to render immediately since Exec Summary has no charts
+            // but if we changed default tab, we'd call render function here.
+        });
+
+    </script>
+</body>
+</html>
